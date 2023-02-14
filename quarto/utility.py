@@ -11,13 +11,10 @@ from functools import cache
 def cook_data_pieces(state: quarto.Quarto) -> dict:
     data = {}
     status = state.get_game().get_board_status()
-    # print(status)
     used_pieces = {c for x in status for c in x if c > -1}
     usable_pieces = {x for x in range(16)} - used_pieces
     alpha = list()
     beta = list()
-    # print(usable_pieces)
-    # print(used_pieces)
     if len(usable_pieces) == 1:
         return {"alpha": [(list(usable_pieces)[0], 1)], "beta": [(list(usable_pieces)[0], 1)]}
     for p in usable_pieces:
@@ -41,7 +38,6 @@ def cook_data_moves(state: quarto.Quarto, piece: int) -> dict:
     gamma = list()
     delta = list()
     epsilon = list()
-    # print(possible_moves)
     if len(possible_moves) == 1:
         return {
             "gamma": [(possible_moves[0], 1)],
@@ -271,12 +267,7 @@ def check_for_win(gameboard):
         game.select(piece)
         game.place(m[0], m[1])
         if game.check_winner() > -1:
-            # print("winning move found")
-            # print(f"piece: {piece}")
-            # print(f"move: {m}")
-            # print(f"{game.get_board_status()}")
             move = m
-            # input()
             break
 
     return move
@@ -294,12 +285,6 @@ def blocking_piece(usable_pieces, game):
             board.place(m[0], m[1])
             if board.check_winner() > -1:
                 winner = True
-                # print(current_board)
-                # print(board.check_winner())
-                # print(f"blocking piece: {p}")
-                # print(board.get_board_status())
-                # print(f"move: {m}")
-                # input()
         if not winner:
             pieces[p] = m
 
@@ -309,51 +294,28 @@ def blocking_piece(usable_pieces, game):
 @cache
 def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=None, game=None):
     """Minmax to choise the best move to play and piece to use"""
-
-    # input()
     if (isMaximizing and game.check_winner() > -1) or depth == 0:
-        # print("evaluationm")
         evaluation = self.evaluate_board(isMaximizing, game, last_move, last_piece)
         self.memory[(isMaximizing, hash(str(game)))] = evaluation
         return evaluation
-    # if depth == 0:
-    #     return (self.evaluate_board(isMaximizing, board), last_move, last_piece, game)
-
-    # if isMaximizing and victory(board):
-    #     return (self.evaulate_board(isMaximizing, board), last_move, last_piece)
-    # if (self, isMaximizing) in self.memory:
-    #     return self.memory[(self, isMaximizing)]
-
     if (isMaximizing, hash(str(game))) in self.memory:
         print("memory")
         return self.memory[(isMaximizing, hash(str(game)))]
 
     best_choice = None
-    # board = game.get_board_status()
     selected_piece = game.get_selected_piece()
     board = game.get_board_status()
     avvailable_piece = get_available_pieces(board, selected_piece)
     available_moves = get_available_moves(board)
     if isMaximizing:
-        # print(board)
-        # value = -math.inf
         best_choice = (-math.inf, -1, -1)
-        # board = deepcopy(self.get_game().get_board_status())
-        # avvailable_piece = get_available_pieces(board)
-        # available_moves = get_available_moves(board)
-        # print(
-        #     f"depth: {depth} last_move: {last_move} last_piece: {last_piece} isMaximizing: {isMaximizing} selected piece: {game.get_selected_piece()} \n {board}"
-        # )
-        # selected_piece = game.get_selected_piece()
         for m in available_moves:
             game_copy = deepcopy(game)
             game_copy.place(m[0], m[1])
             for p in avvailable_piece:
                 if not game_copy.select(p):
                     logging.debug(f"piece {p} not available")
-                    # print(f"pice: {p} move: {m} \n {game_copy.get_board_status()}")
                 evaluation = minmax(self, depth - 1, alpha, beta, False, m, p, game_copy)
-                # print(f"evaluation max: {evaluation}")
                 best_choice = max(best_choice, evaluation, key=lambda x: x[0])
                 alpha = max(alpha, best_choice[0])
                 if beta <= alpha or best_choice[0] == 100:
@@ -364,22 +326,13 @@ def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=No
 
     else:
         best_choice = (math.inf, -1, -1)
-        # board = deepcopy(self.get_game().get_board_status())
-        # avvailable_piece = get_available_pieces(board)
-        # available_moves = get_available_moves(board)
-        # print(
-        #     f"depth: {depth} last_move: {last_move} last_piece: {last_piece} isMaximizing: {isMaximizing} selected piece: {game.get_selected_piece()} \n {board}"
-        # )
-        # # selected_piece = game.get_selected_piece()
         for m in available_moves:
             game_copy = deepcopy(game)
             game_copy.place(m[0], m[1])
             for p in avvailable_piece:
                 if not game_copy.select(p):
                     logging.debug(f"piece {p} not available")
-                    # print(f"pice: {p} move: {m} \n {game_copy.get_board_status()}")
                 evaluation = minmax(self, depth - 1, alpha, beta, True, m, p, game_copy)
-                # print(f"evaluation min: {evaluation}")
                 best_choice = min(best_choice, evaluation, key=lambda x: x[0])
                 beta = min(beta, best_choice[0])
                 if beta <= alpha or best_choice[0] == 0:
@@ -387,53 +340,6 @@ def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=No
             if best_choice[0] == 0:
                 break
         return best_choice
-
-
-'''
-def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=None, board=None):
-    """Minmax to choise the best move to play and piece to use"""
-    if depth == 0:
-        return (self.evaluate_board(isMaximizing, board), last_move, last_piece)
-    # if isMaximizing and victory(board):
-    #     return (self.evaulate_board(isMaximizing, board), last_move, last_piece)
-    # if (self, isMaximizing) in self.memory:
-    #     return self.memory[(self, isMaximizing)]
-    best_choice = None
-    if isMaximizing:
-        # print(board)
-        # value = -math.inf
-        best_choice = (-math.inf, -1, -1)
-        # board = deepcopy(self.get_game().get_board_status())
-        avvailable_piece = get_available_pieces(board)
-        available_moves = get_available_moves(board)
-        for p in avvailable_piece:
-            for m in available_moves:
-                board[m[0]][m[1]] = p
-                evaluation = minmax(self, depth - 1, alpha, beta, False, m, p, board)
-                best_choice = max(best_choice, evaluation, key=lambda x: x[0])
-                board[m[0]][m[1]] = -1
-                alpha = max(alpha, best_choice[0])
-                if beta <= alpha:
-                    break
-        return best_choice
-    else:
-        best_choice = (math.inf, -1, -1)
-        # board = deepcopy(self.get_game().get_board_status())
-        avvailable_piece = get_available_pieces(board)
-        available_moves = get_available_moves(board)
-        for p in avvailable_piece:
-            for m in available_moves:
-                board[m[0]][m[1]] = p
-                evaluation = minmax(self, depth - 1, alpha, beta, True, m, p, board)
-                # print(best_choice)
-                # print(evaluation)
-                best_choice = min(evaluation, best_choice, key=lambda x: x[0])
-                board[m[0]][m[1]] = -1
-                beta = min(beta, best_choice[0])
-                if beta <= alpha:
-                    break
-        return best_choice
-'''
 
 
 def get_available_pieces(board, selected_piece=None):
