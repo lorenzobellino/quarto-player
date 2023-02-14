@@ -3,8 +3,9 @@
 
 import logging
 import argparse
-import random
 import quarto
+import sys
+import itertools
 
 from players import (
     DumbPlayer,
@@ -15,50 +16,44 @@ from players import (
     TrainedGAPlayer,
     MinMaxPlayer,
     MixedStrategyPlayer,
+    TrainedRLPlayer,
+    MixedStrategyRL,
 )
-
-
-class RandomPlayer(quarto.Player):
-    """Random player"""
-
-    def __init__(self, quarto: quarto.Quarto) -> None:
-        super().__init__(quarto)
-
-    def choose_piece(self) -> int:
-        return random.randint(0, 15)
-
-    def place_piece(self) -> tuple[int, int]:
-        return random.randint(0, 3), random.randint(0, 3)
 
 
 def main():
     win = 0
-    N_GAMES = 100
+    N_GAMES = 50
 
-    # players = (RandomPlayer, RuleBasedPlayer)
-    players = (TrainedGAPlayer, RuleBasedPlayer)
-    # players = (MinMaxPlayer, RuleBasedPlayer)
-    # players = (TrainedGAPlayer)
-    players = (RandomPlayer, MinMaxPlayer)
-    players = (RandomPlayer, MixedStrategyPlayer)
-    for i in range(N_GAMES):
+    players = [
+        DumbPlayer,
+        RandomPlayer,
+        RuleBasedPlayer,
+        TrainedGAPlayer,
+        MixedStrategyPlayer,
+        TrainedRLPlayer,
+        MixedStrategyRL,
+    ]
 
+    for p1, p2 in itertools.product(players, repeat=2):
+
+        print(f"evaluating {p1.__name__} against {p2.__name__} for {N_GAMES} games")
+        print(f"game {0} / {N_GAMES} -> win : {0}/{N_GAMES}", end="")
         game = quarto.Quarto()
-        if i % 2 == 0:
-            game.set_players((players[0](game), players[1](game)))
-            # game.set_players((RandomPlayer(game), RuleBasedPlayer(game)))
-        else:
-            game.set_players((players[1](game), players[0](game)))
-            # game.set_players((RuleBasedPlayer(game), RandomPlayer(game)))
-        winner = game.run()
-        if i % 2 == 0 and winner == 1 or i % 2 == 1 and winner == 0:
-            win += 1
-            logging.warning(f"rulebased has won game {i}")
-    logging.warning(f"winratio = {win/N_GAMES}")
-    # game = quarto.Quarto()
-    # game.set_players((RandomPlayer(game), RuleBasedPlayer(game)))
-    # winner = game.run()
-    # logging.warning(f"main: Winner: player {winner}")
+        win = 0
+        for i in range(N_GAMES):
+            game.reset()
+            if i % 2 == 0:
+                game.set_players((p1(game), p2(game)))
+            else:
+                game.set_players((p2(game), p1(game)))
+            winner = game.run()
+            if i % 2 == winner:
+                win += 1
+            sys.stdout.flush()
+            print(f"\rgame {i} / {N_GAMES} -> win : {win}/{N_GAMES}", end="")
+        print("\n")
+        logging.warning(f"winratio :\n{p1.__name__} -> {win/N_GAMES}\n{p2.__name__} -> {(N_GAMES-win)/N_GAMES}\n\n")
 
 
 if __name__ == "__main__":
