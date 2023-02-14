@@ -3,7 +3,7 @@ import logging
 import json
 
 import quarto
-from players import DumbPlayer, RandomPlayer, HumanPlayer, GAPlayer, RuleBasedPlayer
+from players import DumbPlayer, RandomPlayer, GAPlayer, RuleBasedPlayer
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -20,15 +20,15 @@ def fitness(genome):
     game = quarto.Quarto()
     agent = GAPlayer(game)
     agent.set_genome(genome)
-    # print("against random")
+
     opponent = RandomPlayer(game)
     random_eval = evaluate(game, agent, opponent, NUM_MATCHES)
     game.reset()
-    # print("against dumb player")
+
     opponent = DumbPlayer(game)
     dumb_eval = evaluate(game, agent, opponent, NUM_MATCHES)
     game.reset()
-    # print("against rule based")
+
     opponent = RuleBasedPlayer(game)
     rule_eval = evaluate(game, agent, opponent, NUM_MATCHES)
 
@@ -46,7 +46,6 @@ def generate_population(dim: int) -> list:
             "epsilon": random.uniform(-10, 10),
         }
         fit = fitness(genome)
-        # print(f"individual {_} -> fit : {fit}")
         r.append((fit, genome))
     return r
 
@@ -63,7 +62,7 @@ def combine(population, offspring):
 
 def generate_offspring(population: list, gen: int) -> list:
     offspring = list()
-    for i in range(OFFSPRING):
+    for _ in range(OFFSPRING):
         p = tournament(population)
 
         p[1]["alpha"] += random.gauss(0, 20 / (gen + 1))
@@ -109,7 +108,6 @@ def GA():
 
 
 def evaluate(game: quarto.Quarto, player1: GAPlayer, player2: quarto.Player, n: int):
-
     win = 0
     for _ in range(n):
         game.reset()
@@ -117,30 +115,10 @@ def evaluate(game: quarto.Quarto, player1: GAPlayer, player2: quarto.Player, n: 
             game.set_players((player1, player2))
         else:
             game.set_players((player2, player1))
-
         winner = game.run()
-
         if _ % 2 == winner:
             win += 1
-
     return win / n
-    # win_count = 0
-    # last_start = 1
-    # for i in range(n):
-    #     game.reset()
-    #     if last_start == 1:
-    #         game.set_players((GA, player2))
-    #         last_start = 0
-    #     else:
-    #         game.set_players((player2, GA))
-    #         last_start = 1
-
-    #     winner = game.run()
-
-    #     if (winner == 0 and last_start == 0) or (winner == 1 and last_start == 1):  # player1 win
-    #         win_count += 1
-
-    # return win_count / n
 
 
 def training():
@@ -149,13 +127,13 @@ def training():
     agentGen = GAPlayer(game)
     agentGen.set_genome(best_genome)
     result = evaluate(game, agentGen, RandomPlayer(game), NUM_MATCHES)
-    print(f"main: Winner ratio of GA: {result} -- RANDOM")
+    logging.info(f"main: Winner ratio of GA: {result} -- RANDOM")
     game.reset()
     result = evaluate(game, agentGen, DumbPlayer(game), NUM_MATCHES)
-    print(f"main: Winner ratio of GA: {result} -- DUMB")
+    logging.info(f"main: Winner ratio of GA: {result} -- DUMB")
     game.reset()
     result = evaluate(game, agentGen, RuleBasedPlayer(game), NUM_MATCHES)
-    print(f"main: Winner ratio of GA: {result} -- RULE BASED")
+    logging.info(f"main: Winner ratio of GA: {result} -- RULE BASED")
     game.reset()
 
 
