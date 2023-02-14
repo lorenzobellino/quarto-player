@@ -314,7 +314,7 @@ def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=No
     if (isMaximizing and game.check_winner() > -1) or depth == 0:
         # print("evaluationm")
         evaluation = self.evaluate_board(isMaximizing, game, last_move, last_piece)
-        self.memory[(isMaximizing, game)] = evaluation
+        self.memory[(isMaximizing, hash(str(game)))] = evaluation
         return evaluation
     # if depth == 0:
     #     return (self.evaluate_board(isMaximizing, board), last_move, last_piece, game)
@@ -324,8 +324,9 @@ def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=No
     # if (self, isMaximizing) in self.memory:
     #     return self.memory[(self, isMaximizing)]
 
-    if (isMaximizing, game) in self.memory:
-        return self.memory[(isMaximizing, game)]
+    if (isMaximizing, hash(str(game))) in self.memory:
+        print("memory")
+        return self.memory[(isMaximizing, hash(str(game)))]
 
     best_choice = None
     # board = game.get_board_status()
