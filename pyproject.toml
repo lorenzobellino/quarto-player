@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "quarto"
+version = "0.1.0"
+description = ""
+authors = ["lorenzobellino <lor.bellino@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.23.4"
+yapf = "^0.32.0"
+toml = "^0.10.2"
+black = "^22.10.0"
+matplotlib = "^3.6.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.yapf]
+based_on_style = "google"
+blank_line_before_module_docstring = true
+column_limit = 120
+
+[tool.yapfignore]
+ignore_patterns = [
+  ".*/**",
+]
+
+[tool.black]
+include = "\\.ipynb"
+line-length = 120
