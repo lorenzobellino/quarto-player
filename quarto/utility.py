@@ -46,7 +46,7 @@ def cook_data_moves(state: quarto.Quarto, piece: int) -> dict:
         }
     for p in possible_moves:
         possible_moves.remove(p)
-        *_, g = accumulate([x[0] for x in possible_moves], operator.or_)
+        *_, g = accumulate([x[0] for x in possible_moves], operator.add)
         *_, d = accumulate([x[1] for x in possible_moves], operator.or_)
         *_, e = accumulate([x[0] for x in possible_moves], operator.and_)
         possible_moves.append(p)

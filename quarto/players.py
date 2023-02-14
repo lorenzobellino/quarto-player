@@ -7,7 +7,7 @@ import numpy as np
 
 from utility import *
 
-RL_POLICY_FILE = "populations/policy-1000.pkl"
+RL_POLICY_FILE = "populations/policy-5000.pkl"
 
 
 class GAPlayer(quarto.Player):
@@ -43,12 +43,19 @@ class TrainedGAPlayer(quarto.Player):
 
     def __init__(self, quarto: quarto.Quarto) -> None:
         super().__init__(quarto)
+        # self.genome = {
+        #     "alpha": -81.66675697723781,
+        #     "beta": -113.69148590004534,
+        #     "gamma": -29.32357457256496,
+        #     "delta": -171.92595218897023,
+        #     "epsilon": -10.935275664842214,
+        # }
         self.genome = {
-            "alpha": -81.66675697723781,
-            "beta": -113.69148590004534,
-            "gamma": -29.32357457256496,
-            "delta": -171.92595218897023,
-            "epsilon": -10.935275664842214,
+            "alpha": -94.03014146974122,
+            "beta": -107.17350875193313,
+            "gamma": 152.6577141347451,
+            "delta": -29.856838596915765,
+            "epsilon": -12.095960806170313,
         }
 
     def choose_piece(self) -> int:
@@ -111,7 +118,7 @@ class HumanPlayer(quarto.Player):
         status = self.get_game().get_board_status()
         used_pieces = {c for x in status for c in x if c > -1}
         usable_pieces = [_ for _ in {x for x in range(16)} - used_pieces]
-        print(self.get_board.print())
+        print(self.get_game().print())
         print(f"Choose a piece: {usable_pieces}")
         piece = int(input())
         while piece not in usable_pieces:
@@ -123,7 +130,7 @@ class HumanPlayer(quarto.Player):
     def place_piece(self) -> tuple[int, int]:
         status = self.get_game().get_board_status()
         possible_moves = [(c, r) for r in range(4) for c in range(4) if status[r][c] == -1]
-        print(self.get_board.print())
+        print(self.get_game().print())
         print(f"Choose a move: {possible_moves}")
         move = tuple(map(int, input().split()))
         while move not in possible_moves:
@@ -208,9 +215,10 @@ class MixedStrategyPlayer(quarto.Player):
         self.memory = {}
 
     def choose_piece(self) -> int:
-        if self.minmax_piece is not None:
+        if self.minmax_piece is not None and self.minmax_piece in get_available_pieces(
+            self.get_game().get_board_status()
+        ):
             piece = self.minmax_piece
-            self.minmax_piece = None
             return piece
 
         pieces = block_strategy_piece(self)
@@ -225,20 +233,14 @@ class MixedStrategyPlayer(quarto.Player):
             return move
 
         usable_pieces = get_available_pieces(self.get_game().get_board_status())
-        if len(usable_pieces) < 8:
+        if len(usable_pieces) < 6:
             game = deepcopy(self.get_game())
-            value, move, piece = minmax(self, depth=4, alpha=-math.inf, beta=math.inf, isMaximizing=True, game=game)
-            if piece != -1:
+            value, move, piece = minmax(self, depth=3, alpha=-math.inf, beta=math.inf, isMaximizing=True, game=game)
+            if piece != -1 and value > 0:
                 self.minmax_piece = piece
                 self.previous_board[move[0]][move[1]] = self.get_game().get_selected_piece()
                 self.previous_piece = piece
                 return move
-            else:
-                print("mirror")
-                print(f"previous board: {self.previous_board}")
-                print(f"board: {self.get_game().get_board_status()}")
-                print(f"previous move: {self.previous_move}")
-                print(f"previous piece: {self.previous_piece}")
         move = mirror_strategy_move(self)
 
         return move
@@ -313,24 +315,25 @@ class MixedStrategyRL(quarto.Player):
         self.learning_rate = 10e-3
 
     def choose_piece(self) -> int:
+        print("choosing piece")
         available_pieces = get_available_pieces(self.get_game().get_board_status())
 
-        if self.minmax_piece is not None and self.minmax_piece != -1:
+        if self.minmax_piece is not None and self.minmax_piece != -1 and self.minmax_piece in available_pieces:
             minmax_piece = self.minmax_piece
-            self.minmax_piece = None
             return minmax_piece
 
-        mirror_piece = mirror_strategy_piece(self)
-        if mirror_piece is not None and mirror_piece in available_pieces:
-            return mirror_piece
+        rl_piece = self.choose_piece_rl()
+        if rl_piece is not None:
+            return rl_piece
         else:
-            rl_piece = self.choose_piece_rl()
-            if rl_piece is not None:
-                return rl_piece
+            mirror_piece = mirror_strategy_piece(self)
+            if mirror_piece is not None and mirror_piece in available_pieces:
+                return mirror_piece
             else:
                 return random.choice(available_pieces)
 
     def place_piece(self) -> tuple[int, int]:
+        print("placing piece")
         winning_move = check_for_win(self.get_game())
         if winning_move is not None:
             return winning_move
@@ -339,10 +342,10 @@ class MixedStrategyRL(quarto.Player):
 
         rl_move = self.choose_move_rl()
 
-        if len(usable_pieces) < 7:
+        if len(usable_pieces) < 6:
             game = deepcopy(self.get_game())
             value, minmax_move, minmax_piece = minmax(
-                self, depth=4, alpha=-math.inf, beta=math.inf, isMaximizing=True, game=game
+                self, depth=3, alpha=-math.inf, beta=math.inf, isMaximizing=True, game=game
             )
             if value > 60 and minmax_piece != -1 and minmax_move != (-1, -1):
                 self.minmax_piece = minmax_piece
@@ -366,17 +369,26 @@ class MixedStrategyRL(quarto.Player):
                 choice = max(possible_chioce, key=possible_chioce[1])
             except:
                 choice = None
+        else:
+            choice = None
+        print(f"rl choiche piece{choice}")
         return choice
 
     def choose_move_rl(self):
         board = self.get_game().get_board_status()
         choice = None
+        print(f"g : {self.G.keys()}")
+        print(f"b : {hash(str(board))}")
+        print(f"s : {str(board)}")
+        print(f"len : {len(self.G)}")
+        input()
         if hash(str(board)) in self.G:
             try:
                 possible_chioce = self.G[hash(str(board))]["move"]
                 choice = max(possible_chioce, key=possible_chioce[1])
             except:
                 choice = None
+        print(f"rl choiche move -> {choice}")
         return choice
 
     def evaluate_board(self, isMaximizing, game, last_move, last_piece):
