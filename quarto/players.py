@@ -1,11 +1,13 @@
 import random
 import quarto
 
-# import pickle
+import pickle
 import math
 import numpy as np
 
 from utility import *
+
+RL_POLICY_FILE = "populations/policy-1000.pkl"
 
 
 class GAPlayer(quarto.Player):
@@ -248,7 +250,9 @@ class MixedStrategyPlayer(quarto.Player):
 
     def choose_piece(self) -> int:
         if self.minmax_piece is not None:
-            return self.minmax_piece
+            piece = self.minmax_piece
+            self.minmax_piece = None
+            return piece
 
         pieces = block_strategy_piece(self)
         # self.winning_pieces = pieces
@@ -274,8 +278,16 @@ class MixedStrategyPlayer(quarto.Player):
             # if value > 75:
             if piece != -1:
                 self.minmax_piece = piece
+                self.previous_board[move[0]][move[1]] = self.get_game().get_selected_piece()
+                self.previous_piece = piece
                 return move
-
+            else:
+                print("mirror")
+                print(f"previous board: {self.previous_board}")
+                print(f"board: {self.get_game().get_board_status()}")
+                print(f"previous move: {self.previous_move}")
+                print(f"previous piece: {self.previous_piece}")
+        # print("mirror")
         move = mirror_strategy_move(self)
 
         return move
@@ -296,61 +308,40 @@ class MixedStrategyPlayer(quarto.Player):
             return (v, last_move, last_piece)
 
 
-"""
-class MinMaxPlayer(quarto.Player):
+class TrainedRLAgent(quarto.Player):
     def __init__(self, quarto: quarto.Quarto) -> None:
         super().__init__(quarto)
-        self.first_move = True
-        self.piece_choice = None
-        self.move_choice = None
-        self.memory = {}
+        self.is_learning = False
+        self.G = pickle.load(open(RL_POLICY_FILE, "rb"))
+        self.current_state = dict()
+        self.randomness = 0.7
+        self.learning_rate = 10e-3
 
     def choose_piece(self) -> int:
-        piece = 0
-        if self.first_move:
-            piece = random.randint(0, 15)
+        board = self.get_game().get_board_status()
+        available_pieces = get_available_pieces(board)
+
+        if hash(str(board)) in self.G:
+            try:
+                possible_chioce = self.G[hash(str(board))]["piece"]
+                choice = max(possible_chioce, key=possible_chioce[1])
+            except:
+                choice = random.choice(available_pieces)
         else:
-            piece = self.piece_choice
-        # choice = minmax_piece(self, 10, -math.inf, math.inf, True)
-        return piece
+            choice = random.choice(available_pieces)
+
+        return choice
 
     def place_piece(self) -> tuple[int, int]:
-        move = (0, 0)
-        board = deepcopy(self.get_game().get_board_status())
-        value, move, piece = minmax(self, depth=3, alpha=-math.inf, beta=math.inf, isMaximizing=True, board=board)
-        # print(f"Value: {value}")
-        self.piece_choice = piece
-        self.move_choice = move
-        # print(f"Piece: {piece}")
-        # print(f"Move: {move}")
-        return move
-
-    def evaluate_board(self, isMaximizing, board):
-        if isMaximizing:
-            if check_for_win(self) is not None:
-                return 1
-            else:
-                usable_pieces = get_available_pieces(board)
-                blocking_pieces = block_strategy_piece(self)
-                return len(blocking_pieces) / len(usable_pieces)
+        board = self.get_game().get_board_status()
+        available_moves = get_available_moves(board)
+        if hash(str(board)) in self.G:
+            try:
+                possible_chioce = self.G[hash(str(board))]["move"]
+                choice = max(possible_chioce, key=possible_chioce[1])
+            except:
+                choice = random.choice(available_moves)
         else:
-            if check_for_win(self) is not None:
-                return 0
-            else:
-                usable_pieces = get_available_pieces(board)
-                blocking_pieces = block_strategy_piece(self)
-                return (len(usable_pieces) - len(blocking_pieces)) / len(usable_pieces)
+            choice = random.choice(available_moves)
 
-    # def victory(self):
-    #     if self.get_game().check_winner() > -1:
-    #         return True
-
-    # def get_available_pieces(self):
-    #     status = self.get_game().get_board_status()
-    #     used_pieces = {c for x in status for c in x if c > -1}
-    #     return list({x for x in range(16)} - used_pieces)
-
-    # def get_available_moves(self):
-    #     status = self.get_game().get_board_status()
-    #     return [(c, r) for r in range(4) for c in range(4) if status[r][c] == -1]
-"""
+        return choice
