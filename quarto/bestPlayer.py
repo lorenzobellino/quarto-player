@@ -43,9 +43,9 @@ class S309413(quarto.Player):
             return move
 
         usable_pieces = get_available_pieces(self.get_game().get_board_status())
-        if len(usable_pieces) < 6:
+        if len(usable_pieces) < 8:
             game = deepcopy(self.get_game())
-            value, move, piece = minmax(self, depth=3, alpha=-math.inf, beta=math.inf, isMaximizing=True, game=game)
+            value, move, piece = minmax(self, depth=5, alpha=-math.inf, beta=math.inf, isMaximizing=True, game=game)
             if piece != -1 and value > 0:
                 self.minmax_piece = piece
                 self.previous_board[move[0]][move[1]] = self.get_game().get_selected_piece()
