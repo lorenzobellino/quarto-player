@@ -108,6 +108,15 @@ def GA():
 
 
 def evaluate(game: quarto.Quarto, player1: GAPlayer, player2: quarto.Player, n: int):
+    """Evaluate the performance of a player against another player
+    param:
+        game: the game to be played
+        player1: the first player
+        player2: the second player
+        n: the number of matches to be played
+    return:
+        the ratio of matches won by player1
+    """
     win = 0
     for _ in range(n):
         game.reset()

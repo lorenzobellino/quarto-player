@@ -73,17 +73,16 @@ def cook_data_moves(state: quarto.Quarto, piece: int) -> dict:
 
 
 def mirror_strategy_piece(self):
+    """mirror the choice of the opponent
+    if the opponent choose a piece, i choose the most different one
+    """
     piece = random.randint(0, 15)
 
     current_board = self.get_game().get_board_status()
-    if self.previous_piece == None:
-        self.playing_first = True
 
-    if self.playing_first and self.previous_piece == None:
+    if self.previous_piece == None:
         piece = random.randint(0, 15)
         # if i am plain first, i choose a random piece for the first move
-
-    # elif self.playing_first and self.previous_piece != None:
     else:
         piece_info = self.get_game().get_piece_charachteristics(self.previous_piece).binary
         used_pieces = {c for x in current_board for c in x if c > -1}
@@ -98,80 +97,49 @@ def mirror_strategy_piece(self):
                 piece = p
                 break
         piece = max(pieces, key=lambda x: x[1])[0]
-    # else:
-    #     piece_info = self.get_game().get_piece_charachteristics(self.previous_piece).binary
-    #     used_pieces = {c for x in current_board for c in x if c > -1}
-    #     usable_pieces = [_ for _ in {x for x in range(16)} - used_pieces]
-    #     pieces = list()
-    #     for p in usable_pieces:
-    #         # for each usable pieces find the most different from the previous piece
-    #         p_info = [int(x) for x in format(p, "04b")]
-    #         r = sum([abs(x - y) for x, y in zip(p_info, piece_info)])
-    #         pieces.append((p, r))
-    #         if r == 4:
-    #             piece = p
-    #             break
-    #     piece = max(pieces, key=lambda x: x[1])[0]
     return piece
 
 
 def mirror_strategy_move(self):
+    """mirror the choice of the opponent
+    if the opponent choose a move, i choose the opposite one if i can
+    """
     self.previous_piece = self.get_game().get_selected_piece()
-    # print("playing first: ", self.playing_first)
-    if self.playing_first:
-        self.previous_piece = self.get_game().get_selected_piece()
-        current_board = self.get_game().get_board_status()
-        for i, r in enumerate(zip(self.previous_board, current_board)):
-            # print(f"r1: {r[0]} r2: {r[1]}")
-            for j, c in enumerate(zip(r[0], r[1])):
-                # print(f"c1: {c[0]} c2: {c[1]}")
-                if c[0] != c[1]:
-                    # print(f"r:{current_board.index(r2)} c={r2.index(c2)}")
-                    self.previous_move = (i, j)
-                    # self.previous_move = (current_board.where(x == r2), r2.where(x == c2))
-                    # print(f"updating prev move: {self.previous_move}")
-                    break
+    current_board = self.get_game().get_board_status()
+    # find the previous move by vomparing the current board with the previous one and find the first difference
+    for i, r in enumerate(zip(self.previous_board, current_board)):
+        for j, c in enumerate(zip(r[0], r[1])):
+            if c[0] != c[1]:
+                self.previous_move = (i, j)
+                break
+    if self.previous_move != None:
+        # if there is a previous move, i choose the opposite one if i can
         possible_moves = [(c, r) for r in range(4) for c in range(4) if self.previous_board[r][c] == -1]
         move = (3 - self.previous_move[1], 3 - self.previous_move[0])
         if move not in possible_moves:
-            move = random.choice(possible_moves)
-        self.previous_board = deepcopy(current_board)
-        self.previous_board[move[1]][move[0]] = self.previous_piece
+            # if the opposite move is not possible, i try to find a move that is as far as possible from the previous one
+            # the distance is calculated usiong the manhattan distance
+            manhattan = list()
+            for m in possible_moves:
+                v = sum(abs(x - y) for x, y in zip(move, self.previous_move))
+                manhattan.append((m, v))
+            move = max(manhattan, key=lambda x: x[1])[0]
     else:
-        # print("going second place piece")
-        move = (-1, -1)
-        current_board = self.get_game().get_board_status()
-        for i, r in enumerate(zip(self.previous_board, current_board)):
-            # print(f"r1: {r[0]} r2: {r[1]}")
-            for j, c in enumerate(zip(r[0], r[1])):
-                # print(f"c1: {c[0]} c2: {c[1]}")
-                if c[0] != c[1]:
-                    # print(f"r:{current_board.index(r2)} c={r2.index(c2)}")
-                    self.previous_move = (i, j)
-                    # self.previous_move = (current_board.where(x == r2), r2.where(x == c2))
-                    # print(f"updating prev move: {self.previous_move}")
-                    break
-        possible_moves = [(c, r) for r in range(4) for c in range(4) if self.previous_board[r][c] == -1]
-
-        if move not in possible_moves or self.previous_move == None:
-            try:
-                move = random.choice(possible_moves)
-            except IndexError:
-                print("index error")
-                print(possible_moves)
-                print(self.previous_board)
-        else:
-            move = (3 - self.previous_move[1], 3 - self.previous_move[0])
-
-        self.previous_board = deepcopy(current_board)
-        self.previous_board[move[1]][move[0]] = self.previous_piece
-
-        # input()
+        move = (random.randint(0, 3), random.randint(0, 3))
+    self.previous_board = deepcopy(current_board)  # update the previous board
+    self.previous_board[move[1]][move[0]] = self.previous_piece  # update the previous board with the selected move
     return move
 
 
 def block_strategy_piece(self):
-    piece = -1
+    """check if the are moves that can make the opponent win
+    if so, return the piece that can block the move
+    param:
+        usable_pieces: list of pieces that can be used
+        game: current game
+    return:
+        pieces: list of pieces that will not make the opponent win
+    """
     winner = False
     current_board = self.get_game().get_board_status()
     used_pieces = {c for x in current_board for c in x if c > -1}
@@ -181,18 +149,13 @@ def block_strategy_piece(self):
     for p in usable_pieces:
         winner = False
         for m in possible_moves:
+            # if i choose a piece and the opponent can not make a winning move with that piece add it to the list
             board = deepcopy(self.get_game())
 
             board.select(p)
             board.place(m[0], m[1])
             if board.check_winner() > -1:
                 winner = True
-                # print(current_board)
-                # print(board.check_winner())
-                # print(f"blocking piece: {p}")
-                # print(board.get_board_status())
-                # print(f"move: {m}")
-                # input()
         if not winner:
             pieces[p] = m
 
@@ -213,7 +176,7 @@ def check_for_win(gameboard):
         if game.check_winner() > -1:
             move = m
             break
-
+    # return the list that can not make the opponent win
     return move
 
 

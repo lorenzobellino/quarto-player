@@ -19,23 +19,34 @@ from players import (
     TrainedRLPlayer,
     MixedStrategyRL,
 )
+from bestPlayer import S309413
 
 
 def main():
     win = 0
-    N_GAMES = 50
+    N_GAMES = 1000
 
-    players = [
-        DumbPlayer,
-        RandomPlayer,
-        RuleBasedPlayer,
-        TrainedGAPlayer,
-        MixedStrategyPlayer,
-        TrainedRLPlayer,
-        MixedStrategyRL,
-    ]
+    # players = [
+    #     DumbPlayer,
+    #     RandomPlayer,
+    #     RuleBasedPlayer,
+    #     TrainedGAPlayer,
+    #     MixedStrategyPlayer,
+    #     TrainedRLPlayer,
+    #     MixedStrategyRL,
+    # ]
 
-    for p1, p2 in itertools.product(players, repeat=2):
+    # players = [
+    #     DumbPlayer,
+    #     RandomPlayer,
+    #     RuleBasedPlayer,
+    #     TrainedGAPlayer,
+    #     TrainedRLPlayer,
+    # ]
+    players = [S309413, TrainedGAPlayer, RandomPlayer, DumbPlayer, RuleBasedPlayer, TrainedRLPlayer]
+
+    # for p1, p2 in itertools.product(players, repeat=2):
+    for p1, p2 in itertools.combinations(players, 2):
 
         print(f"evaluating {p1.__name__} against {p2.__name__} for {N_GAMES} games")
         print(f"game {0} / {N_GAMES} -> win : {0}/{N_GAMES}", end="")

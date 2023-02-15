@@ -15,6 +15,8 @@ LOG_FREQ = 1000
 
 
 class ReinforcementLearningAgent(quarto.Player):
+    """A reinforcement learning agent that learns to play Quarto."""
+
     def __init__(self, quarto: quarto.Quarto) -> None:
         super().__init__(quarto)
         self.is_learning = False
@@ -24,9 +26,11 @@ class ReinforcementLearningAgent(quarto.Player):
         self.learning_rate = 10e-3
 
     def get_policy(self) -> dict:
+        """Returns the policy of the agent."""
         return self.G
 
     def set_learning(self, is_learning: bool) -> None:
+        """Sets the learning mode of the agent."""
         self.is_learning = is_learning
 
     def choose_piece(self) -> int:
@@ -35,11 +39,12 @@ class ReinforcementLearningAgent(quarto.Player):
         available_moves = get_available_moves(board)
 
         if self.is_learning and random.random() < self.randomness:
+            # if is learning choose a ranfdom piece and add it to the current state
             choice = random.choice(available_pieces)
             self.current_state[hash(str(board))] = {"piece": choice}
         else:
+            # if not learning choose the best piece if it is in the policy
             if hash(str(board)) in self.G:
-
                 try:
                     possible_chioce = self.G[hash(str(board))]["piece"]
                     choice = max(possible_chioce, key=possible_chioce[1])
@@ -53,10 +58,12 @@ class ReinforcementLearningAgent(quarto.Player):
     def place_piece(self) -> tuple[int, int]:
         board = self.get_game().get_board_status()
         available_moves = get_available_moves(board)
+        # if is learning choose a random move and add it to the current state
         if self.is_learning and random.random() < self.randomness:
             choice = random.choice(available_moves)
             self.current_state[hash(str(board))] = {"move": choice}
         else:
+            # if not learning choose the best move if it is in the policy
             if hash(str(board)) in self.G:
                 try:
                     possible_chioce = self.G[hash(str(board))]["move"]
@@ -69,38 +76,41 @@ class ReinforcementLearningAgent(quarto.Player):
 
     def learn(self, win: bool) -> None:
         for board, value in self.current_state.items():
+            # current_state = {board: {"piece": [[piece, score], ..], "move": [[move, score], ..]}}
             flag = False
-            if board in self.G:
+            if board in self.G:  # if the board is in the policy
+                # if the update is for a piece
                 if "piece" in value and "piece" in self.G[board]:
-                    for p in self.G[board]["piece"]:
+                    for p in self.G[board]["piece"]:  # self.G[board]["piece"] = [[piece, score], ..]
                         if p[0] == value["piece"]:
                             if win:
-                                p[1] += 1
+                                p[1] += 1  # if win increase the score by 1
                             else:
-                                p[1] -= 1
+                                p[1] -= 1  # if lose decrease the score by 1
                             flag = True
                             break
-                    if not flag:
+                    if not flag:  # if the piece is not in the policy add it
                         self.G[board]["piece"].append([value["piece"], 1 if win else -1])
+                # if the update is for a move
                 elif "move" in value and "move" in self.G[board]:
-                    for p in self.G[board]["move"]:
+                    for p in self.G[board]["move"]:  # self.G[board]["move"] = [[move, score], ..]
                         if p[0] == value["move"]:
                             if win:
-                                p[1] += 1
+                                p[1] += 1  # if win increase the score by 1
                             else:
-                                p[1] -= 1
+                                p[1] -= 1  # if lose decrease the score by 1
                             flag = True
                             break
-                    if not flag:
+                    if not flag:  # if the move is not in the policy add it
                         self.G[board]["move"].append([value["move"], 1 if win else -1])
-            else:
+            else:  # if the board is not in the policy
                 if "piece" in value:
-                    self.G[board] = {"piece": [[value["piece"], 1 if win else -1]]}
+                    self.G[board] = {"piece": [[value["piece"], 1 if win else -1]]}  # add a new entry for the piece
                 elif "move" in value:
-                    self.G[board] = {"move": [[value["move"], 1 if win else -1]]}
+                    self.G[board] = {"move": [[value["move"], 1 if win else -1]]}  # add a new entry for the move
 
-        self.current_state = dict()
-        self.randomness -= self.learning_rate
+        self.current_state = dict()  # reset the current state
+        self.randomness -= self.learning_rate  # decrease the randomness
 
 
 def reinforcement_training(

@@ -4,16 +4,22 @@ from utility import *
 
 
 class S309413(quarto.Player):
+    """S309413 player"""
+
     def __init__(self, quarto: quarto.Quarto) -> None:
         super().__init__(quarto)
         self.previous_board = np.array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
         self.previous_move = None
         self.previous_piece = None
-        self.playing_first = False
         self.minmax_piece = None
         self.memory = {}
 
     def choose_piece(self) -> int:
+        """Choose a piece to play with:
+        if minmax strategy is available, use it
+        if not, use the blocking strategy
+        if not, use the mirror strategy
+        """
         if self.minmax_piece is not None and self.minmax_piece in get_available_pieces(
             self.get_game().get_board_status()
         ):
@@ -27,6 +33,11 @@ class S309413(quarto.Player):
         return piece
 
     def place_piece(self) -> tuple[int, int]:
+        """Place a piece on the board:
+        if minmax strategy is available, use it
+        if not, use the blocking strategy
+        if not, use the mirror strategy
+        """
         move = check_for_win(self.get_game())
         if move is not None:
             return move
@@ -45,12 +56,24 @@ class S309413(quarto.Player):
         return move
 
     def evaluate_board(self, isMaximizing, game, last_move, last_piece):
+        """Evaluate the board:
+        parameters:
+            isMaximizing: bool
+            game: quarto.Quarto
+            last_move: tuple[int, int]
+            last_piece: int
+        return:
+            tuple[int, tuple[int, int], int] = (value, last_move, last_piece)
+        """
 
         if game.check_winner() > -1:
             return (100, last_move, last_piece)
 
         usable_pieces = get_available_pieces(game.get_board_status())
         blocking_pieces = blocking_piece(usable_pieces, game)
+
+        # the value is the percentage of blocking pieces if isMaximizing is True
+        # the value is the percentage of non blocking pieces if isMaximizing is False
 
         if isMaximizing:
             v = len(blocking_pieces) * 100 / len(usable_pieces)
