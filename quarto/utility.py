@@ -9,6 +9,7 @@ from functools import cache
 
 
 def cook_data_pieces(state: quarto.Quarto) -> dict:
+    """provide usefull data for the genetic algorithm whe need to choose a piece"""
     data = {}
     status = state.get_game().get_board_status()
     used_pieces = {c for x in status for c in x if c > -1}
@@ -16,12 +17,17 @@ def cook_data_pieces(state: quarto.Quarto) -> dict:
     alpha = list()
     beta = list()
     if len(usable_pieces) == 1:
+        # if there is only one piece left, it is the best choice
         return {"alpha": [(list(usable_pieces)[0], 1)], "beta": [(list(usable_pieces)[0], 1)]}
     for p in usable_pieces:
         usable_pieces.remove(p)
+        # remove the selected piece from the usable pieces
+        # calculate the sum of the remaining pieces
         *_, a = accumulate([_ for _ in usable_pieces], operator.add)
         usable_pieces.add(p)
         used_pieces.add(p)
+        # add the selected piece to the used pieces
+        # calculate the nand of the used pieces
         *_, b = accumulate(used_pieces, lambda x, y: ~(x & y))
         used_pieces.remove(p)
         alpha.append((p, a))
@@ -32,6 +38,7 @@ def cook_data_pieces(state: quarto.Quarto) -> dict:
 
 
 def cook_data_moves(state: quarto.Quarto, piece: int) -> dict:
+    """provide usefull data for the genetic algorithm whe need to choose a move"""
     data = {}
     status = state.get_game().get_board_status()
     possible_moves = [(c, r) for r in range(4) for c in range(4) if status[r][c] == -1]
@@ -39,13 +46,18 @@ def cook_data_moves(state: quarto.Quarto, piece: int) -> dict:
     delta = list()
     epsilon = list()
     if len(possible_moves) == 1:
+        # if there is only one move left, it is the best choice
         return {
             "gamma": [(possible_moves[0], 1)],
             "delta": [(possible_moves[0], 1)],
             "epsilon": [(possible_moves[0], 1)],
         }
     for p in possible_moves:
+        # remove the selected move from the possible moves
         possible_moves.remove(p)
+        # calculate the sum of the remaining moves
+        # calculate the or of the remaining moves
+        # calculate the and of the remaining moves
         *_, g = accumulate([x[0] for x in possible_moves], operator.add)
         *_, d = accumulate([x[1] for x in possible_moves], operator.or_)
         *_, e = accumulate([x[0] for x in possible_moves], operator.and_)
@@ -60,76 +72,6 @@ def cook_data_moves(state: quarto.Quarto, piece: int) -> dict:
     return data
 
 
-def sum_operation(status) -> int:
-    """
-    Perform the sum operation on the pieces on the board
-    param state: Nim
-    return: result: int, the sub operation of the state
-    """
-    *_, r = accumulate(status, operator.add)
-    try:
-        *_, result = accumulate(r, operator.add)
-    except TypeError:
-        result = r
-    return result
-
-
-def sub_operation(status) -> int:
-    """
-    Perform the sub operation on the pieces on the board
-    param state: Nim
-    return: result: int, the sub operation of the state
-    """
-    *_, r = accumulate(status, operator.sub)
-    try:
-        *_, result = accumulate(r, operator.sub)
-    except TypeError:
-        result = r
-    return result
-
-
-def nand_operation(status) -> int:
-    """
-    Perform the nand operation on the pieces on the board
-    param state: Nim
-    return: result: int, the nand operation of the state
-    """
-    *_, r = accumulate(status, lambda x, y: ~(x & y))
-    try:
-        *_, result = accumulate(r, lambda x, y: ~(x & y))
-    except TypeError:
-        result = r
-    return result
-
-
-def and_operation(status) -> int:
-    """
-    Perform the and operation on the pieces on the board
-    param state: Nim
-    return: result: int, the and operation of the state
-    """
-    *_, r = accumulate(status, operator.and_)
-    try:
-        *_, result = accumulate(r, operator.and_)
-    except TypeError:
-        result = r
-    return result
-
-
-def or_operation(status) -> int:
-    """
-    Perform the or operation on the pieces on the board
-    param state: Nim
-    return: result: int, the or operation of the state
-    """
-    *_, r = accumulate(status, operator.or_)
-    try:
-        *_, result = accumulate(r, operator.or_)
-    except TypeError:
-        result = r
-    return result
-
-
 def mirror_strategy_piece(self):
     piece = random.randint(0, 15)
 
@@ -139,36 +81,37 @@ def mirror_strategy_piece(self):
 
     if self.playing_first and self.previous_piece == None:
         piece = random.randint(0, 15)
-    elif self.playing_first and self.previous_piece != None:
-        piece_info = self.get_game().get_piece_charachteristics(self.previous_piece).binary
-        used_pieces = {c for x in current_board for c in x if c > -1}
-        usable_pieces = [_ for _ in {x for x in range(16)} - used_pieces]
-        pieces = list()
-        for p in usable_pieces:
-            p_info = [int(x) for x in format(p, "04b")]
-            r = sum([abs(x - y) for x, y in zip(p_info, piece_info)])
-            pieces.append((p, r))
-            if r == 4:
-                piece = p
-                break
-        piece = max(pieces, key=lambda x: x[1])[0]
+        # if i am plain first, i choose a random piece for the first move
+
+    # elif self.playing_first and self.previous_piece != None:
     else:
         piece_info = self.get_game().get_piece_charachteristics(self.previous_piece).binary
         used_pieces = {c for x in current_board for c in x if c > -1}
         usable_pieces = [_ for _ in {x for x in range(16)} - used_pieces]
         pieces = list()
         for p in usable_pieces:
+            # for each usable pieces find the most different from the previous piece
             p_info = [int(x) for x in format(p, "04b")]
-            # print(f"p_info: {p_info} piece_info: {piece_info}")
             r = sum([abs(x - y) for x, y in zip(p_info, piece_info)])
             pieces.append((p, r))
             if r == 4:
                 piece = p
                 break
         piece = max(pieces, key=lambda x: x[1])[0]
-    # print(f"selected piece : {piece}")
-    # print(f"prev piece: {self.previous_piece}")
-    # input()
+    # else:
+    #     piece_info = self.get_game().get_piece_charachteristics(self.previous_piece).binary
+    #     used_pieces = {c for x in current_board for c in x if c > -1}
+    #     usable_pieces = [_ for _ in {x for x in range(16)} - used_pieces]
+    #     pieces = list()
+    #     for p in usable_pieces:
+    #         # for each usable pieces find the most different from the previous piece
+    #         p_info = [int(x) for x in format(p, "04b")]
+    #         r = sum([abs(x - y) for x, y in zip(p_info, piece_info)])
+    #         pieces.append((p, r))
+    #         if r == 4:
+    #             piece = p
+    #             break
+    #     piece = max(pieces, key=lambda x: x[1])[0]
     return piece
 
 
@@ -257,6 +200,7 @@ def block_strategy_piece(self):
 
 
 def check_for_win(gameboard):
+    """Check if the gameboard has a winning move. If so, return the move"""
     move = None
 
     piece = gameboard.get_selected_piece()
@@ -274,12 +218,21 @@ def check_for_win(gameboard):
 
 
 def blocking_piece(usable_pieces, game):
+    """check if the are moves that can make the opponent win
+    if so, return the piece that can block the move
+    param:
+        usable_pieces: list of pieces that can be used
+        game: current game
+    return:
+        pieces: list of pieces that will not make the opponent win
+    """
     winner = False
     pieces = {}
     possible_moves = [(c, r) for r in range(4) for c in range(4) if game.get_board_status()[r][c] == -1]
     for p in usable_pieces:
         winner = False
         for m in possible_moves:
+            # if i choose a piece and the opponent can not make a winning move with that piece add it to the list
             board = deepcopy(game)
             board.select(p)
             board.place(m[0], m[1])
@@ -287,7 +240,7 @@ def blocking_piece(usable_pieces, game):
                 winner = True
         if not winner:
             pieces[p] = m
-
+    # return the list that can not make the opponent win
     return pieces
 
 
@@ -295,11 +248,13 @@ def blocking_piece(usable_pieces, game):
 def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=None, game=None):
     """Minmax to choise the best move to play and piece to use"""
     if (isMaximizing and game.check_winner() > -1) or depth == 0:
+        # if winning position or max depth reached
+        # evaluate the position and return the value
         evaluation = self.evaluate_board(isMaximizing, game, last_move, last_piece)
         self.memory[(isMaximizing, hash(str(game)))] = evaluation
         return evaluation
     if (isMaximizing, hash(str(game))) in self.memory:
-        print("memory")
+        # if the state is already solved in the memory return the value
         return self.memory[(isMaximizing, hash(str(game)))]
 
     best_choice = None
@@ -313,12 +268,13 @@ def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=No
             game_copy = deepcopy(game)
             game_copy.place(m[0], m[1])
             for p in avvailable_piece:
+                # for each move and each possible piece minimize the opponent and maximize my score
                 if not game_copy.select(p):
                     logging.debug(f"piece {p} not available")
                 evaluation = minmax(self, depth - 1, alpha, beta, False, m, p, game_copy)
                 best_choice = max(best_choice, evaluation, key=lambda x: x[0])
                 alpha = max(alpha, best_choice[0])
-                if beta <= alpha or best_choice[0] == 100:
+                if beta <= alpha or best_choice[0] == 100:  # alpha beta pruning or winning position
                     break
             if best_choice[0] == 100:
                 break
@@ -330,12 +286,13 @@ def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=No
             game_copy = deepcopy(game)
             game_copy.place(m[0], m[1])
             for p in avvailable_piece:
+                # for each move and each possible piece minimize the opponent and maximize my score
                 if not game_copy.select(p):
                     logging.debug(f"piece {p} not available")
                 evaluation = minmax(self, depth - 1, alpha, beta, True, m, p, game_copy)
                 best_choice = min(best_choice, evaluation, key=lambda x: x[0])
                 beta = min(beta, best_choice[0])
-                if beta <= alpha or best_choice[0] == 0:
+                if beta <= alpha or best_choice[0] == 0:  # alpha beta pruning or losing position for minimizer
                     break
             if best_choice[0] == 0:
                 break
@@ -343,6 +300,13 @@ def minmax(self, depth, alpha, beta, isMaximizing, last_move=None, last_piece=No
 
 
 def get_available_pieces(board, selected_piece=None):
+    """return a list of pieces that are not used in the board
+    param:
+        board: current board
+        selected_piece: piece selected by the player
+    return:
+        list of pieces that are not used in the board
+    """
     used_pieces = {c for x in board for c in x if c > -1}
     if selected_piece is not None:
         used_pieces.add(selected_piece)
@@ -350,4 +314,10 @@ def get_available_pieces(board, selected_piece=None):
 
 
 def get_available_moves(board):
+    """return a list of moves that are not used in the board
+    param:
+        board: current board
+    return:
+        list of moves that are not used in the board
+    """
     return [(c, r) for r in range(4) for c in range(4) if board[r][c] == -1]
