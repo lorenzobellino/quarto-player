@@ -1,0 +1,118 @@
+evaluating S309413 against TrainedGAPlayer for 1000 games
+game 999 / 1000 -> win : 676/1000
+
+WARNING:root:winratio :
+S309413 -> 0.676
+TrainedGAPlayer -> 0.324
+
+
+evaluating S309413 against RandomPlayer for 1000 games
+game 999 / 1000 -> win : 953/1000
+
+WARNING:root:winratio :
+S309413 -> 0.953
+RandomPlayer -> 0.047
+
+
+evaluating S309413 against DumbPlayer for 1000 games
+game 999 / 1000 -> win : 567/1000
+
+WARNING:root:winratio :
+S309413 -> 0.567
+DumbPlayer -> 0.433
+
+
+evaluating S309413 against RuleBasedPlayer for 1000 games
+game 999 / 1000 -> win : 500/1000
+
+WARNING:root:winratio :
+S309413 -> 0.5
+RuleBasedPlayer -> 0.5
+
+
+evaluating S309413 against TrainedRLPlayer for 1000 games
+game 999 / 1000 -> win : 956/1000
+
+WARNING:root:winratio :
+S309413 -> 0.956
+TrainedRLPlayer -> 0.044
+
+
+evaluating TrainedGAPlayer against RandomPlayer for 1000 games
+game 999 / 1000 -> win : 578/1000
+
+WARNING:root:winratio :
+TrainedGAPlayer -> 0.578
+RandomPlayer -> 0.422
+
+
+evaluating TrainedGAPlayer against DumbPlayer for 1000 games
+game 999 / 1000 -> win : 1000/1000
+
+WARNING:root:winratio :
+TrainedGAPlayer -> 1.0
+DumbPlayer -> 0.0
+
+
+evaluating TrainedGAPlayer against RuleBasedPlayer for 1000 games
+game 999 / 1000 -> win : 253/1000
+
+WARNING:root:winratio :
+TrainedGAPlayer -> 0.253
+RuleBasedPlayer -> 0.747
+
+
+evaluating TrainedGAPlayer against TrainedRLPlayer for 1000 games
+game 999 / 1000 -> win : 569/1000
+
+WARNING:root:winratio :
+TrainedGAPlayer -> 0.569
+TrainedRLPlayer -> 0.431
+
+
+evaluating RandomPlayer against DumbPlayer for 1000 games
+game 999 / 1000 -> win : 412/1000
+
+WARNING:root:winratio :
+RandomPlayer -> 0.412
+DumbPlayer -> 0.588
+
+
+evaluating RandomPlayer against RuleBasedPlayer for 1000 games
+game 999 / 1000 -> win : 34/1000
+
+WARNING:root:winratio :
+RandomPlayer -> 0.034
+RuleBasedPlayer -> 0.966
+
+
+evaluating RandomPlayer against TrainedRLPlayer for 1000 games
+game 999 / 1000 -> win : 479/1000
+
+WARNING:root:winratio :
+RandomPlayer -> 0.479
+TrainedRLPlayer -> 0.521
+
+
+evaluating DumbPlayer against RuleBasedPlayer for 1000 games
+game 999 / 1000 -> win : 424/1000
+
+WARNING:root:winratio :
+DumbPlayer -> 0.424
+RuleBasedPlayer -> 0.576
+
+
+evaluating DumbPlayer against TrainedRLPlayer for 1000 games
+game 999 / 1000 -> win : 590/1000
+
+WARNING:root:winratio :
+DumbPlayer -> 0.59
+TrainedRLPlayer -> 0.41
+
+
+evaluating RuleBasedPlayer against TrainedRLPlayer for 1000 games
+game 999 / 1000 -> win : 951/1000
+
+WARNING:root:winratio :
+RuleBasedPlayer -> 0.951
+TrainedRLPlayer -> 0.049
