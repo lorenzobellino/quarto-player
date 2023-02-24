@@ -24,7 +24,7 @@ from bestPlayer import S309413
 
 def main():
     win = 0
-    N_GAMES = 1000
+    N_GAMES = 10
 
     # players = [
     #     DumbPlayer,
@@ -62,7 +62,7 @@ def main():
             if i % 2 == winner:
                 win += 1
             sys.stdout.flush()
-            print(f"\rgame {i} / {N_GAMES} -> win : {win}/{N_GAMES}", end="")
+            print(f"\rgame {i+1} / {N_GAMES} -> win : {win}/{N_GAMES}", end="")
         print("\n")
         logging.warning(f"winratio :\n{p1.__name__} -> {win/N_GAMES}\n{p2.__name__} -> {(N_GAMES-win)/N_GAMES}\n\n")
 
