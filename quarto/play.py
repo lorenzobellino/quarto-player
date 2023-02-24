@@ -51,6 +51,8 @@ if __name__ == "__main__":
         "Human": HumanPlayer,
         "MixedStrategy": MixedStrategyPlayer,
         "MixedRL": MixedStrategyRL,
+        "GA": GAPlayer,
+        "minmax": MinMaxPlayer,
     }
     parser = argparse.ArgumentParser(description="Quarto player: choose two players and play a game")
     parser.add_argument("-v", "--verbose", action="count", default=0, help="increase log verbosity")
@@ -60,33 +62,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "player1",
         type=str,
-        choices=[
-            "S309413",
-            "GA",
-            "Random",
-            "Dumb",
-            "RuleBased",
-            "RL",
-            "Human",
-            "MixedStrategy",
-            "MixedRL",
-        ],
+        choices=["S309413", "GA", "Random", "Dumb", "RuleBased", "RL", "Human", "MixedStrategy", "MixedRL", "Minmax"],
         help="first player",
     )
     parser.add_argument(
         "player2",
         type=str,
-        choices=[
-            "S309413",
-            "GA",
-            "Random",
-            "Dumb",
-            "RuleBased",
-            "RL",
-            "Human",
-            "MixedStrategy",
-            "MixedRL",
-        ],
+        choices=["S309413", "GA", "Random", "Dumb", "RuleBased", "RL", "Human", "MixedStrategy", "MixedRL", "Minmax"],
         help="first player",
     )
     parser.add_argument("N", type=int, nargs="?", default=1, help="number of games to be played - default 1")
