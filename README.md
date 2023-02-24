@@ -7,6 +7,42 @@ The game of quarto consist of a board with **16 squares** and **16 pieces**. Eac
 The goal is to establish a line of four pieces ith at least one common characteristic (attribute) on the board.
 Quarto is a turn based. impartial game.
 The game start with *player1* choosing a piece to place on the board, then *player2* chooses where to place it and choose an ather piece to be placed on the board. The game continues until one of the players has established a line of four pieces with at least one common attribute.
+## Play it yorself
+You can play the game by running the file [play.py](https://github.com/lorenzobellino/quarto-player/blob/main/quarto/play.py) with the command
+```bash
+python play.py "player1" "player2" "N"
+```
+where *player1* and *player2* are the names of the players you want to play against and *N* is the number of games that you want to play. If you don't specify a number of games, the game will be played only once. 
+The available players are:
+- *random* : a random player that choose a random piece and a random position on the board
+- *dumb* : a player that choose the first piece that is not already on the board and place it on the first empty square on the board
+- *human* : a player that ask the user to choose a piece and a position on the board
+- *GA* : a player that use a genetic algorithm to choose the best piece and the best position on the board
+- *RL* : a player that use a reinforcement learning algorithm to choose the best piece and the best position on the board
+- *MixedStrategy* : a player that uses minmax and rule based strategies to choose the best piece and the best position on the board
+- *MixedRL* : a player that uses minmax and reinforcement learning strategies to choose the best piece and the best position on the board
+- *S309413* : my best player
+- *RuleBased* : a player that uses rule based strategies to choose the best piece and the best position on the board
+
+## create your own player
+You can create your own player by creating a class that extends the class *quarto.Player* and implementing the methods *choose_piece* and *place_piece*.
+boylerlate code for player:
+```python
+class MyPlayer(quarto.Player):
+    """My player"""
+
+    def __init__(self, quarto: quarto.Quarto) -> None:
+        super().__init__(quarto)
+
+    def choose_piece(self) -> int:
+        # choose a piece
+        return piece
+
+    def place_piece(self) -> tuple[int, int]:
+        # choose a position
+        return position
+```
+
 
 ## Analyzing the problem 
 The first step that i took to search for a solution was to create a playable version of the player in order to sense the problem and to be able to test possible strategies by playing aganinst the random player already created.
