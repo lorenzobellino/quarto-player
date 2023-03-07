@@ -51,7 +51,7 @@ if __name__ == "__main__":
         "Human": HumanPlayer,
         "MixedStrategy": MixedStrategyPlayer,
         "MixedRL": MixedStrategyRL,
-        "GA": GAPlayer,
+        "GA": TrainedGAPlayer,
         "minmax": MinMaxPlayer,
     }
     parser = argparse.ArgumentParser(description="Quarto player: choose two players and play a game")
