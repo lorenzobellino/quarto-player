@@ -7,7 +7,7 @@ The game of quarto consist of a board with **16 squares** and **16 pieces**. Eac
 The goal is to establish a line of four pieces ith at least one common characteristic (attribute) on the board.
 Quarto is a turn based. impartial game.
 The game start with *player1* choosing a piece to place on the board, then *player2* chooses where to place it and choose an ather piece to be placed on the board. The game continues until one of the players has established a line of four pieces with at least one common attribute.
-## Play it yorself
+## Play it yourself
 You can play the game by running the file [play.py](https://github.com/lorenzobellino/quarto-player/blob/main/quarto/play.py) with the command
 ```bash
 python play.py "player1" "player2" "N"
